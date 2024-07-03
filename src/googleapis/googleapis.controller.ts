@@ -27,7 +27,7 @@ export class GoogleapisController {
   ) {
     const sale = [id, deal, dealName, name, email, phone];
     console.log(sale);
-    return this.googleapisService.create(sale);
+    return this.googleapisService.create(sale, dealName);
   }
 
   @Get()

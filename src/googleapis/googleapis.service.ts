@@ -33,9 +33,8 @@ export class GoogleapisService {
       console.error('Произошла ошибка:', error);
     }
   }
-  async create(data: any[]) {
+  async create(data: any[], range: string) {
     const sheets = google.sheets({ version: 'v4', auth: this.client });
-    const range = 'Рега тапалка';
     const values = [data];
     const response = await sheets.spreadsheets.values.append({
       spreadsheetId: this.configService.get('spreadsheet_id'),
