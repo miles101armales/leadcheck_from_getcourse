@@ -27,32 +27,33 @@ export class GoogleapisController {
     @Query('name') name: string,
     @Query('email') email: string,
     @Query('phone') phone: string,
+    @Query('type') type: string,
   ) {
-    const sale = [id, deal, dealName, name, email, phone];
+    const sale = [id, deal, dealName, name, email, phone, type];
 
     // Если массив для текущего dealName еще не существует, создаем его
-    if (!this.salesByDealName[dealName]) {
-      this.salesByDealName[dealName] = [];
+    if (!this.salesByDealName[type]) {
+      this.salesByDealName[type] = [];
     }
 
-    this.range = dealName;
+    this.range = type;
     console.log(sale);
-    this.salesByDealName[dealName].push(sale);
+    this.salesByDealName[type].push(sale);
 
-    return 'Data added for dealName: ' + dealName;
+    return 'Data added for dealName: ' + type;
   }
 
   @Cron('0 12,18 * * *')
   @Get('cron')
   async postToGoogleApi() {
     // Итерируемся по всем dealName в объекте salesByDealName
-    for (const dealName in this.salesByDealName) {
-      console.log(dealName);
-      if (this.salesByDealName.hasOwnProperty(dealName)) {
-        const values = this.salesByDealName[dealName];
-        await this.googleapisService.create(values, dealName);
+    for (const type in this.salesByDealName) {
+      console.log(type);
+      if (this.salesByDealName.hasOwnProperty(type)) {
+        const values = this.salesByDealName[type];
+        await this.googleapisService.create(values, type);
         // После отправки данных можно очистить массив для текущего dealName
-        delete this.salesByDealName[dealName];
+        delete this.salesByDealName[type];
       }
     }
   }
