@@ -16,44 +16,61 @@ import { Cron } from '@nestjs/schedule';
 @Controller('googleapis')
 export class GoogleapisController {
   private salesByDealName: { [key: string]: any[][] } = {}; // Объект для хранения массивов sales по dealName
-  private range: string;
+  private rangeMappings: { [key: string]: string } = {
+    vk1: 'ВК - 1 день',
+    vk2: 'ВК - 2 день',
+    rs1: 'РСЯ - 1 день',
+    rs2: 'РСЯ - 2 день',
+    // Добавьте другие соответствия, если необходимо
+  };
+
   constructor(private readonly googleapisService: GoogleapisService) {}
 
   @Get('send')
   create(
-    @Query('id') id: number,
-    @Query('deal') deal: number,
-    @Query('dealName') dealName: string,
-    @Query('name') name: string,
     @Query('email') email: string,
     @Query('phone') phone: string,
-    @Query('type') type: string,
+    @Query('type') type: string, // Используйте vkType вместо type для передачи vk1, vk2 и т.д.
   ) {
-    const sale = [id, deal, dealName, name, email, phone, type];
+    const now = new Date();
+  
+    // Форматирование даты в нужный формат YYYY-MM-DD
+    const year = now.getFullYear();
+    const month = ('0' + (now.getMonth() + 1)).slice(-2); // +1, так как месяцы в JavaScript начинаются с 0
+    const day = ('0' + now.getDate()).slice(-2);
+    
+    const formattedDate = `${year}-${month}-${day}`;
+    
+    const sale = [formattedDate, phone, email];
 
-    // Если массив для текущего dealName еще не существует, создаем его
-    if (!this.salesByDealName[type]) {
-      this.salesByDealName[type] = [];
+    // Преобразуем vkType в range
+    const range = this.rangeMappings[type];
+    if (!range) {
+      throw new Error(`Invalid type: ${type}`);
     }
 
-    this.range = type;
-    console.log(sale);
-    this.salesByDealName[type].push(sale);
+    // Если массив для текущего range еще не существует, создаем его
+    if (!this.salesByDealName[range]) {
+      this.salesByDealName[range] = [];
+    }
 
-    return 'Data added for dealName: ' + type;
+    console.log(sale);
+    this.salesByDealName[range].push(sale);
+
+    return 'Data added for dealName: ' + range;
   }
 
-  @Cron('0 12,18 * * *')
+  @Cron('0 7,13 * * *')
   @Get('cron')
   async postToGoogleApi() {
-    // Итерируемся по всем dealName в объекте salesByDealName
-    for (const type in this.salesByDealName) {
-      console.log(type);
-      if (this.salesByDealName.hasOwnProperty(type)) {
-        const values = this.salesByDealName[type];
-        await this.googleapisService.create(values, type);
-        // После отправки данных можно очистить массив для текущего dealName
-        delete this.salesByDealName[type];
+    // Итерируемся по всем range в объекте salesByDealName
+    for (const range in this.salesByDealName) {
+      console.log(range);
+      if (this.salesByDealName.hasOwnProperty(range)) {
+        const values = this.salesByDealName[range];
+        await this.googleapisService.create(values, range);
+        // После отправки данных можно очистить массив для текущего range
+        delete this.salesByDealName[range];
       }
     }
   }
