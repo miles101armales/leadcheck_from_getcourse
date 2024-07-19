@@ -28,20 +28,26 @@ export class GoogleapisController {
 
   @Get('send')
   create(
+    @Query('id') id: string,
     @Query('email') email: string,
     @Query('phone') phone: string,
     @Query('type') type: string, // Используйте vkType вместо type для передачи vk1, vk2 и т.д.
   ) {
     const now = new Date();
-  
+
     // Форматирование даты в нужный формат YYYY-MM-DD
     const year = now.getFullYear();
     const month = ('0' + (now.getMonth() + 1)).slice(-2); // +1, так как месяцы в JavaScript начинаются с 0
     const day = ('0' + now.getDate()).slice(-2);
-    
+
     const formattedDate = `${year}-${month}-${day}`;
-    
-    const sale = [formattedDate, phone, email];
+
+    const sale = [
+      formattedDate,
+      phone,
+      email,
+      `https://azatvaleev.getcourse.ru/sales/control/deal/update/id/${id}`,
+    ];
 
     // Преобразуем vkType в range
     const range = this.rangeMappings[type];
